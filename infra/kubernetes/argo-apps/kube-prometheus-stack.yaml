@@ -14,7 +14,7 @@ spec:
       helm:
         valueFiles:
           - $values/infra/kubernetes/base/observability/kube-prometheus-stack-values.yaml
-    - repoURL: https://github.com/guykopa/orientops
+    - repoURL: https://github.com/guykopa/OrientAPI
       targetRevision: main
       ref: values
   destination:
