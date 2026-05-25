@@ -1,0 +1,22 @@
+# Allow Traefik (running in kube-system) to reach OrientAPI pods on port 8000.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-orientapi
+  namespace: orientapi
+  labels:
+    app.kubernetes.io/part-of: orientops
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: orientapi
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 8000
+          protocol: TCP

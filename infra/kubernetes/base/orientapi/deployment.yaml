@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orientapi
+  namespace: orientapi
+  labels:
+    app.kubernetes.io/name: orientapi
+    app.kubernetes.io/part-of: orientops
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orientapi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: orientapi
+        app.kubernetes.io/part-of: orientops
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: orientapi
+          image: ghcr.io/guykopa/orientapi:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: orientapi-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: database_url
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3

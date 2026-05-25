@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE_NAME: ghcr.io/guykopa/orientapi
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e "./app[dev]"
+
+      - name: Run tests
+        run: pytest -v
+        working-directory: app
+
+  build-scan-push:
+    name: Build · Scan · Push
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.tag.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image tag
+        id: tag
+        run: echo "value=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image locally for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}
+
+      - name: Scan with Trivy (block on CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}
+          format: table
+          exit-code: "1"
+          severity: CRITICAL
+
+      - name: Push image to GHCR
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.value }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  bump-tag:
+    name: Bump image tag in manifests
+    needs: build-scan-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update deployment image tag
+        run: |
+          TAG="${{ needs.build-scan-push.outputs.image_tag }}"
+          sed -i "s|image: ghcr.io/guykopa/orientapi:.*|image: ghcr.io/guykopa/orientapi:${TAG}|g" \
+            infra/kubernetes/base/orientapi/deployment.yaml
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/kubernetes/base/orientapi/deployment.yaml
+          git diff --staged --quiet && echo "No change to commit" && exit 0
+          git commit -m "ci: bump orientapi image to ${{ needs.build-scan-push.outputs.image_tag }}"
+          git push

@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: orientapi
+      POSTGRES_PASSWORD: orientapi
+      POSTGRES_DB: orientapi
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orientapi"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://orientapi:orientapi@db:5432/orientapi
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

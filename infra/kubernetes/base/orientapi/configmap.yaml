@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orientapi-config
+  namespace: orientapi
+  labels:
+    app.kubernetes.io/name: orientapi
+    app.kubernetes.io/part-of: orientops
+data:
+  LOG_LEVEL: "INFO"
+  APP_NAME: "OrientAPI"
+  APP_VERSION: "1.0.0"

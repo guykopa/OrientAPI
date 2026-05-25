@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orientapi
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: orientops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/guykopa/orientops
+    targetRevision: main
+    path: infra/kubernetes/base/orientapi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orientapi
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
