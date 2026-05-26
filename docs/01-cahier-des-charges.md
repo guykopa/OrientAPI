@@ -1,9 +1,9 @@
 # Cahier des charges technique — Infrastructure OrientAPI
 
-**Référence :** ONISEP-DSI-CDC-2024-001  
+**Référence :** OrientSup-DSI-CDC-2024-001  
 **Version :** 1.0  
 **Date :** 2024-11-15  
-**Émetteur :** Direction des Systèmes d'Information — ONISEP  
+**Émetteur :** Direction des Systèmes d'Information — OrientSup  
 **Destinataire :** Prestataire d'infogérance retenu  
 **Statut :** Applicable
 
@@ -13,7 +13,7 @@
 
 ### 1.1 Contexte organisationnel
 
-L'ONISEP (Office National d'Information Sur les Enseignements et les Professions) est un établissement public sous tutelle du ministère de l'Éducation nationale. La DSI de l'ONISEP pilote l'ensemble des systèmes d'information de l'établissement, dont certains font l'objet de délégations à des prestataires d'infogérance.
+OrientSup est un groupement d'intérêt public (GIP) sous tutelle du ministère de l'Éducation nationale, chargé de l'orientation scolaire et professionnelle. La DSI d'OrientSup pilote l'ensemble des systèmes d'information de l'établissement, dont certains font l'objet de délégations à des prestataires d'infogérance.
 
 Dans le cadre de sa stratégie de modernisation 2024-2026, la DSI souhaite déployer **OrientAPI**, une API REST de recommandation de formations post-bac à destination des équipes internes et des intégrateurs partenaires. Ce service traite des données personnelles de profils élèves et est classifié **sensible** au sens de la politique de sécurité des systèmes d'information (PSSI) de l'établissement.
 
@@ -37,7 +37,7 @@ OrientAPI expose trois endpoints REST :
 | GET     | `/metrics`   | Métriques Prometheus pour la supervision                       |
 | POST    | `/recommend` | Retourne une liste de formations adaptée à un profil élève    |
 
-L'API est sans état applicatif (*stateless*) ; la persistance est assurée par une base PostgreSQL hébergeant le référentiel des formations ONISEP (~10 000 entrées).
+L'API est sans état applicatif (*stateless*) ; la persistance est assurée par une base PostgreSQL hébergeant le référentiel des formations OrientSup (~10 000 entrées).
 
 ### 2.2 Volumétrie de référence
 
@@ -158,4 +158,4 @@ La recette sera prononcée favorable si l'ensemble des conditions suivantes sont
 
 ---
 
-*Document rédigé par la DSI ONISEP — toute modification doit faire l'objet d'un avenant signé par les deux parties.*
+*Document rédigé par la DSI OrientSup — toute modification doit faire l'objet d'un avenant signé par les deux parties.*

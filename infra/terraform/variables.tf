@@ -1,5 +1,5 @@
 variable "aws_region" {
-  description = "AWS region to deploy into (RGPD-friendly, close to ONISEP)"
+  description = "AWS region to deploy into — eu-west-3 (Paris) for RGPD compliance"
   type        = string
   default     = "eu-west-3"
 }
