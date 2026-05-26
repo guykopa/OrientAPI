@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kube-prometheus-stack
+  name: prometheus
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: orientops
@@ -9,11 +9,11 @@ spec:
   project: default
   sources:
     - repoURL: https://prometheus-community.github.io/helm-charts
-      chart: kube-prometheus-stack
-      targetRevision: "67.*"
+      chart: prometheus
+      targetRevision: "27.*"
       helm:
         valueFiles:
-          - $values/infra/kubernetes/base/observability/kube-prometheus-stack-values.yaml
+          - $values/infra/kubernetes/base/observability/prometheus-values.yaml
     - repoURL: https://github.com/guykopa/OrientAPI
       targetRevision: main
       ref: values
@@ -23,4 +23,3 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
