@@ -16,6 +16,14 @@ kubeControllerManager:
 kubeEtcd:
   enabled: false
 
+# Disable admission webhook — not needed for single-node demo and causes a deadlock
+# on k3s where the operator cannot become Ready before the webhook it serves is registered.
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
+  tls:
+    enabled: false
+
 alertmanager:
   alertmanagerSpec:
     resources:
