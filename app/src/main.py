@@ -3,13 +3,15 @@ from typing import AsyncGenerator
 
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy.orm import Session
 
+from src.auth import create_access_token, require_token, verify_credentials
 from src.config import settings
 from src.database import Base, engine, get_db
 from src.models import Formation  # noqa: F401 — ensures model is registered before create_all
-from src.schemas import FormationOut, ProfilEleve, RecommandationResponse
+from src.schemas import FormationOut, ProfilEleve, RecommandationResponse, Token
 from src.seed import seed
 from src.services import RecommendationService
 
@@ -49,13 +51,31 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+@app.post("/token", response_model=Token, tags=["auth"])
+def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+    if not verify_credentials(form_data.username, form_data.password):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return Token(access_token=create_access_token(form_data.username))
+
+
 @app.get("/formations", response_model=list[FormationOut])
-def list_formations(db: Session = Depends(get_db)) -> list[FormationOut]:
+def list_formations(
+    db: Session = Depends(get_db),
+    _: str = Depends(require_token),
+) -> list[FormationOut]:
     return RecommendationService(db).list_formations()
 
 
 @app.get("/formations/{formation_id}", response_model=FormationOut)
-def get_formation(formation_id: int, db: Session = Depends(get_db)) -> FormationOut:
+def get_formation(
+    formation_id: int,
+    db: Session = Depends(get_db),
+    _: str = Depends(require_token),
+) -> FormationOut:
     formation = RecommendationService(db).get_formation(formation_id)
     if not formation:
         raise HTTPException(status_code=404, detail="Formation non trouvée")
@@ -63,7 +83,10 @@ def get_formation(formation_id: int, db: Session = Depends(get_db)) -> Formation
 
 
 @app.get("/filieres", response_model=list[str])
-def list_filieres(db: Session = Depends(get_db)) -> list[str]:
+def list_filieres(
+    db: Session = Depends(get_db),
+    _: str = Depends(require_token),
+) -> list[str]:
     return RecommendationService(db).list_filieres()
 
 
@@ -71,5 +94,6 @@ def list_filieres(db: Session = Depends(get_db)) -> list[str]:
 def recommend(
     profil: ProfilEleve,
     db: Session = Depends(get_db),
+    _: str = Depends(require_token),
 ) -> RecommandationResponse:
     return RecommendationService(db).recommend(profil)

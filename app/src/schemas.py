@@ -21,3 +21,8 @@ class FormationOut(BaseModel):
 class RecommandationResponse(BaseModel):
     formations: list[FormationOut]
     total: int
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

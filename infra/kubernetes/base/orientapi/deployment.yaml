@@ -34,6 +34,21 @@ spec:
                 secretKeyRef:
                   name: postgres-credentials
                   key: database_url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orientapi-jwt
+                  key: jwt_secret
+            - name: API_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: orientapi-jwt
+                  key: api_username
+            - name: API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orientapi-jwt
+                  key: api_password
           resources:
             requests:
               memory: "64Mi"
