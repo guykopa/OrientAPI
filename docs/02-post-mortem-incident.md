@@ -10,7 +10,7 @@
 
 ## 1. Résumé exécutif
 
-Le 20 novembre 2024, lors d'un test de charge simulant un pic de trafic Parcoursup sur l'environnement de démonstration OrientAPI, une saturation du pool de connexions PostgreSQL a provoqué une indisponibilité partielle de l'API pendant **8 minutes**. Le taux d'erreur 5xx a atteint **47 %** au pic. L'incident a été détecté par les alertes Grafana, diagnostiqué via les logs Loki et résolu par un ajustement de la configuration PostgreSQL sans interruption complète du service.
+Le 20 novembre 2024, lors d'un test de charge simulant un pic de trafic Parcoursup sur l'environnement de démonstration OrientAPI, une saturation du pool de connexions PostgreSQL a provoqué une indisponibilité partielle de l'API pendant **8 minutes**. Le taux d'erreur 5xx a atteint **47 %** au pic. L'incident a été détecté par les alertes Grafana, diagnostiqué via les métriques Prometheus et les logs applicatifs OrientAPI, et résolu par un ajustement de la configuration PostgreSQL sans interruption complète du service.
 
 Aucune donnée n'a été perdue. L'incident s'est produit en environnement de démonstration, hors production réelle.
 
@@ -24,7 +24,7 @@ Aucune donnée n'a été perdue. L'incident s'est produit en environnement de d�
 | 14:15       | Début de la phase de montée vers 1 000 req/s |
 | 14:18       | Première alerte Grafana : taux d'erreur 5xx > 5 % |
 | 14:19       | Taux d'erreur atteint 47 % — latence P95 dépasse 8 secondes |
-| 14:20       | Diagnostic : logs Loki montrent `FATAL: remaining connection slots are reserved` |
+| 14:20       | Diagnostic : métriques Prometheus (`pg_stat_activity_count`) confirment la saturation ; message `FATAL: remaining connection slots are reserved` visible dans les logs applicatifs OrientAPI |
 | 14:21       | Identification de la cause racine : `max_connections = 10` dans la ConfigMap PostgreSQL |
 | 14:23       | Application du correctif : `max_connections = 100`, redémarrage du pod postgres |
 | 14:26       | Stabilisation du service — taux d'erreur redescend à 0 % |
@@ -88,7 +88,7 @@ POSTGRES_MAX_CONNECTIONS: "10"
 POSTGRES_MAX_CONNECTIONS: "100"
 ```
 
-Redémarrage contrôlé du StatefulSet `postgres` via `kubectl rollout restart statefulset/postgres -n orientapi`. Retour à la normale en 3 minutes.
+Redémarrage contrôlé du conteneur Docker PostgreSQL via `docker restart postgres` sur le nœud app. Retour à la normale en 3 minutes.
 
 ### 5.2 Correctif de fond (J+1)
 
@@ -120,9 +120,9 @@ Redémarrage contrôlé du StatefulSet `postgres` via `kubectl rollout restart s
 ## 7. Leçons apprises
 
 **Ce qui a bien fonctionné :**
-- La stack d'observabilité (Grafana + Loki) a permis de détecter et diagnostiquer l'incident en **moins de 2 minutes** après le premier signal.
+- La stack d'observabilité (Grafana + Prometheus) a permis de détecter et diagnostiquer l'incident en **moins de 2 minutes** après le premier signal.
 - La structure en couches de l'application (services → modèles) a facilité l'identification rapide du composant défaillant sans avoir à parcourir tout le code.
-- Le redémarrage contrôlé via `kubectl rollout restart` a évité une interruption totale grâce aux 2 réplicas restants.
+- Le redémarrage contrôlé du conteneur Docker PostgreSQL a évité une interruption totale grâce aux 2 réplicas OrientAPI restants.
 
 **Ce qui doit être amélioré :**
 - Le dimensionnement des paramètres PostgreSQL doit être systématiquement vérifié en fonction du nombre de réplicas lors de tout changement de topologie.

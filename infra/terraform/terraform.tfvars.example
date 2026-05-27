@@ -1,9 +1,12 @@
 # Copy this file to terraform.tfvars and fill in your values.
 # terraform.tfvars is git-ignored — never commit real values.
 
-aws_region          = "eu-west-3"
-instance_type       = "t3.small"
-operator_ip         = "1.2.3.4/32"   # replace with your public IP
-key_pair_name       = "orientops-key"
-public_key_path     = "~/.ssh/id_rsa.pub"
-root_volume_size_gb = 20
+aws_region               = "eu-west-3"
+app_instance_type        = "t3.small"
+monitoring_instance_type = "t3.micro"
+operator_ip              = "1.2.3.4/32"   # replace with your public IP
+key_pair_name            = "orientops-key"
+public_key_path          = "~/.ssh/id_rsa.pub"
+app_volume_size_gb       = 20
+monitoring_volume_size_gb = 15
+postgres_password        = "changeme"     # replace with a strong password

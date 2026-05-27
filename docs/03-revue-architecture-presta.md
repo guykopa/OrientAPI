@@ -22,15 +22,15 @@ La revue a été conduite à partir du dépôt Git livré, de la documentation d
 | Composant | Choix livré | Exigence CDC |
 |---|---|---|
 | Cloud / région | AWS eu-west-3 (Paris) | ✅ Conforme |
-| Compute | EC2 t3.small (2 vCPU / 2 Gio) | ✅ Conforme |
+| Compute | EC2 t3.small (app) + EC2 t3.micro (monitoring) | ✅ Conforme |
 | Orchestration | k3s single-node | ✅ Conforme (périmètre démo) |
 | IaC | Terraform ≥ 1.6 | ✅ Conforme |
 | GitOps | Argo CD, sync automatique | ✅ Conforme |
 | CI/CD | GitHub Actions — test, scan, push, bump | ✅ Conforme |
 | Registre d'images | GHCR (public) | ✅ Conforme |
-| Base de données | PostgreSQL 16 en pod | ✅ Conforme (périmètre démo) |
-| Observabilité | Prometheus + Grafana + Loki + Promtail | ✅ Conforme |
-| Secrets | Bitnami Sealed Secrets | ✅ Conforme |
+| Base de données | PostgreSQL 16 en Docker sur nœud app | ✅ Conforme (périmètre démo) |
+| Observabilité | Prometheus + Grafana sur nœud dédié — 2 dashboards | ✅ Conforme (Loki reporté en V2 — EXI-OBS-01) |
+| Secrets | Injection cloud-init (hors Git) | ✅ Conforme (démo) — gestionnaire dédié requis en prod |
 | TLS | cert-manager + Let's Encrypt (staging) | ⚠️ Partiel |
 | Network Policies | Définies dans Git, Cilium non déployé | ⚠️ Partiel |
 | Chiffrement EBS | Clé par défaut AWS | ⚠️ Non-conforme (CDC EXI-SEC-04) |
@@ -54,7 +54,7 @@ Le pipeline GitHub Actions couvre l'ensemble du cycle : tests unitaires (pytest,
 
 ### 3.3 Observabilité opérationnelle
 
-Les deux dashboards Grafana sont versionnés en JSON et chargés via le mécanisme de sidecar ConfigMap. Les requêtes Prometheus sont pertinentes (P95 latence, taux d'erreur 5xx, consommation mémoire par pod). Le post-mortem a démontré l'efficacité de la stack : détection en moins de 2 minutes, diagnostic par Loki sans connexion SSH à l'instance.
+Les deux dashboards Grafana sont versionnés en JSON et provisionnés automatiquement au démarrage du nœud monitoring. Les requêtes Prometheus sont pertinentes (P95 latence, taux d'erreur 5xx, CPU/RAM de l'hôte). Le post-mortem a démontré l'efficacité de la stack : détection en moins de 2 minutes par alerte Grafana, diagnostic par les métriques Prometheus. L'absence de Loki (reporté en V2) est documentée comme limite connue et acceptée pour le périmètre démo.
 
 ### 3.4 Architecture applicative claire
 
@@ -74,7 +74,7 @@ Le découpage en couches (routes → services → modèles) est respecté. Les r
 
 ### 4.2 Pas de sauvegarde managée de la base PostgreSQL — risque ÉLEVÉ
 
-**Constat :** PostgreSQL est déployé dans un pod avec un PersistentVolumeClaim de 5 Gio sur le stockage local du nœud. Il n'existe aucun mécanisme de sauvegarde automatique vers S3 ou tout autre stockage externe. La destruction de l'instance EC2 ou la corruption du volume EBS entraîne une perte totale des données.
+**Constat :** PostgreSQL est déployé en conteneur Docker sur le nœud app, avec un volume Docker sur le stockage local de l'instance. Il n'existe aucun mécanisme de sauvegarde automatique vers S3 ou tout autre stockage externe. La destruction de l'instance EC2 ou la corruption du volume EBS entraîne une perte totale des données.
 
 **Risque :** RPO (Recovery Point Objective) infini en cas de sinistre majeur.
 
@@ -123,7 +123,7 @@ Le découpage en couches (routes → services → modèles) est respecté. Les r
 
 **La livraison est acceptée pour l'environnement de démonstration**, avec les réserves suivantes :
 
-- ✅ **Sans réserve** : IaC, pipeline CI/CD, observabilité, architecture applicative, secrets management.
+- ✅ **Sans réserve** : IaC, pipeline CI/CD, observabilité (métriques), architecture applicative, gestion des secrets.
 - ⚠️ **Avec réserves levables avant production** : DPIA (bloquant), Cilium pour Network Policies, clé KMS dédiée, issuer TLS production.
 - 🚫 **Non-conforme pour mise en production** : absence de HA et absence de sauvegarde managée. Ces points doivent faire l'objet d'un avenant contractuel et d'un nouveau cahier des charges pour la phase de production.
 

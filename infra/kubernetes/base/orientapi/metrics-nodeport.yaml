@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: orientapi-metrics
+  namespace: orientapi
+  labels:
+    app.kubernetes.io/name: orientapi
+    app.kubernetes.io/part-of: orientops
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: orientapi
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: 8000
+      nodePort: 30090

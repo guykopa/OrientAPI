@@ -1,0 +1,26 @@
+#cloud-config
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - curl
+  - git
+  - docker.io
+  - docker-compose-plugin
+
+runcmd:
+  # Enable Docker
+  - systemctl enable --now docker
+
+  # Clone the repo — source of truth for monitoring config and dashboards
+  - git clone https://github.com/guykopa/OrientAPI.git /opt/orientops
+
+  # Copy monitoring stack to working directory
+  - cp -r /opt/orientops/infra/monitoring /opt/monitoring
+
+  # Inject the app node private IP into Prometheus scrape targets
+  - sed -i 's/APP_PRIVATE_IP/${app_private_ip}/g' /opt/monitoring/prometheus.yml
+
+  # Start Prometheus + Grafana
+  - cd /opt/monitoring && docker compose up -d

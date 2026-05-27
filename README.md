@@ -1,6 +1,6 @@
 # OrientOps
 
-[![CI](https://github.com/guykopa/orientops/actions/workflows/ci.yml/badge.svg)](https://github.com/guykopa/orientops/actions/workflows/ci.yml)
+[![CI](https://github.com/guykopa/OrientAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/guykopa/OrientAPI/actions/workflows/ci.yml)
 
 Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'une API de recommandation, incluant les livrables de gouvernance produits par un ingénieur DevOps en contexte DSI public.
 
@@ -10,12 +10,12 @@ Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'u
 
 | # | Composant | Détail |
 |---|---|---|
-| 1 | Infrastructure as Code | Terraform — VPC, EC2, k3s, eu-west-3 |
-| 2 | Orchestration Kubernetes | k3s + manifests (Deployment, StatefulSet, Ingress, Network Policies) |
+| 1 | Infrastructure as Code | Terraform — VPC, 2 EC2, security groups, cloud-init, eu-west-3 |
+| 2 | Orchestration Kubernetes | k3s single-node + manifests (Deployment, Ingress, Network Policies) |
 | 3 | CI/CD | GitHub Actions : test → build → scan Trivy → push GHCR → bump tag |
 | 4 | GitOps | Argo CD synchronise le cluster depuis `main` à chaque commit |
-| 5 | Observabilité | Prometheus + Grafana + Loki — 2 dashboards versionnés |
-| 6 | Sécurité | Sealed Secrets, Network Policies, scan image, non-root pods |
+| 5 | Observabilité | Prometheus + Grafana sur nœud dédié — 2 dashboards provisionnés |
+| 6 | Sécurité | Network Policies, secrets injectés par cloud-init, scan image, non-root pods |
 | 7 | Tests de charge | k6 — simulation pic Parcoursup 1 000 req/s |
 | 8 | Cahier des charges | Spec technique DSI → prestataire, 9 exigences, critères de recette |
 | 9 | Post-mortem | Incident saturation DB, diagnostiqué en < 2 min, causes documentées |
@@ -33,14 +33,19 @@ GitHub Actions ──► Trivy scan ──► GHCR (image)
      │                                │
      │ bump tag                        │ pull
      ▼                                ▼
- Git repo ◄──── Argo CD ────► k3s (EC2 t3.small, eu-west-3)
-                                  ├─ orientapi (2 pods × 60 MiB)
-                                  ├─ postgres:16 (StatefulSet, PVC 5 Gi)
-                                  ├─ Prometheus + Grafana + Loki
-                                  └─ Argo CD + Traefik (inclus k3s)
+ Git repo ◄──── Argo CD ────► k3s  ┐
+                               │   │  EC2 app — t3.small
+                               ▼   │  ├─ k3s : Argo CD + OrientAPI (2 pods)
+                         Traefik   │  └─ Docker : PostgreSQL + node-exporter
+                               │   └──────────────────────────────────────
+                               ▼
+                          utilisateur        EC2 monitoring — t3.micro
+                                             └─ Docker Compose :
+                                                Prometheus ← scrape /metrics + node-exporter
+                                                Grafana    → dashboards
 ```
 
-**Choix structurants documentés :** k3s plutôt qu'EKS (−70 €/mois), PostgreSQL en pod plutôt que RDS (free tier insuffisant), single-node documenté comme limite connue.
+**Choix structurants documentés :** k3s plutôt qu'EKS (−70 €/mois), observabilité sur nœud dédié plutôt qu'in-cluster (RAM limitée à 2 GiB), PostgreSQL en Docker sur l'hôte plutôt que RDS (hors budget), limites documentées comme différenciateur.
 
 ---
 
@@ -86,28 +91,46 @@ pytest -v
 ```bash
 cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Renseigner operator_ip (votre IP publique) et public_key_path
+# Renseigner : operator_ip, public_key_path, postgres_password
 terraform init
-terraform plan   # vérifier le coût avant d'appliquer
+terraform plan   # vérifier avant d'appliquer
 terraform apply
 ```
 
-**Coût estimé :** < 0,05 €/heure (EC2 t3.small + EBS gp3 20 Gi). Détruire après usage : `terraform destroy`.
+**Coût estimé :** < 0,04 €/heure (t3.small + t3.micro + 2 volumes EBS gp3). Détruire après usage : `terraform destroy`.
 
-### Récupérer le kubeconfig
+### Récupérer le kubeconfig (nœud app)
 
 ```bash
-# Disponible ~5 min après le démarrage (cloud-init installe k3s + Argo CD)
-$(terraform output -raw kubeconfig_command)
+# Disponible ~10 min après le démarrage (cloud-init installe k3s + Argo CD + PostgreSQL)
+$(terraform output -raw app_kubeconfig_command)
 export KUBECONFIG=~/.kube/orientops.yaml
 kubectl get nodes
 ```
 
-### Appliquer les applications Argo CD
+### Accéder à Argo CD
+
+```bash
+# UI : https://<app_public_ip>:30443  (accepter le certificat auto-signé)
+terraform output app_public_ip
+
+# Mot de passe admin initial
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d && echo
+```
+
+### Déployer les applications Argo CD
 
 ```bash
 kubectl apply -f infra/kubernetes/argo-apps/
-# Argo CD synchronise automatiquement toute la stack
+# Argo CD synchronise automatiquement OrientAPI
+```
+
+### Accéder à Grafana
+
+```bash
+# UI : http://<monitoring_public_ip>:3000  (admin / orientops)
+terraform output grafana_url
 ```
 
 ---
@@ -125,7 +148,7 @@ Le script simule 5 phases : montée progressive → 200 req/s nominal → spike 
 
 ## Incident — Saturation du pool PostgreSQL
 
-Lors du test de charge (2024-11-20), un `max_connections = 10` sous-dimensionné a saturé le pool PostgreSQL, provoquant 47 % d'erreurs 5xx pendant 8 minutes. Détection par Grafana en < 2 min, diagnostic par Loki, résolution par mise à jour de la ConfigMap et redémarrage contrôlé du pod.
+Lors du test de charge, un `max_connections` sous-dimensionné a saturé PostgreSQL, provoquant 47 % d'erreurs 5xx pendant 8 minutes. Détection par alerte Grafana en < 2 min, résolution par reconfiguration et redémarrage du conteneur Docker.
 
 → Voir [`docs/02-post-mortem-incident.md`](docs/02-post-mortem-incident.md)
 
@@ -148,10 +171,10 @@ Ces limites sont documentées et font l'objet d'un plan d'évolution.
 | Limite | Risque | Plan v2 |
 |---|---|---|
 | Single-node, single-AZ | Pas de HA, RTO ~15 min | k3s multi-nœuds ou EKS |
+| PostgreSQL et observabilité hors k8s | Hors GitOps, pas d'auto-réparation Kubernetes | PostgreSQL → RDS, observabilité → opérateur in-cluster |
 | Pas de backup PostgreSQL | RPO infini | CronJob pg_dump → S3 |
 | Flannel sans Network Policies actives | Isolation réseau déclarative seulement | Migrer vers Cilium |
 | Chiffrement EBS clé par défaut | Audit cryptographique limité | Clé KMS dédiée |
-| PostgreSQL en pod (pas RDS) | Pas de snapshots managés | RDS en production |
 
 ---
 
@@ -164,11 +187,16 @@ app/                         Application OrientAPI (FastAPI + PostgreSQL)
 ├── Dockerfile               Multi-stage, non-root uid 1001
 └── docker-compose.yml       Dev local
 
-infra/terraform/             Infrastructure AWS (VPC, EC2, k3s, cloud-init)
+infra/terraform/             Infrastructure AWS (VPC, 2 EC2, security groups, cloud-init)
+infra/postgres/              Docker Compose de référence — PostgreSQL sur nœud app
+infra/monitoring/            Stack observabilité — nœud monitoring
+├── docker-compose.yml       Prometheus + Grafana
+├── prometheus.yml           Scrape config (APP_PRIVATE_IP remplacé par Terraform)
+├── provisioning/            Auto-provisioning Grafana (datasource + dashboards)
+└── dashboards/              JSON des 2 dashboards versionnés
+
 infra/kubernetes/
-├── base/orientapi/          Deployment, Service, Ingress, ConfigMap
-├── base/postgres/           StatefulSet, Service, Sealed Secret
-├── base/observability/      Helm values + dashboards Grafana JSON
+├── base/orientapi/          Deployment, Service, Ingress, ConfigMap, NodePort metrics
 ├── base/network-policies/   Deny-all + allow-list
 └── argo-apps/               Définitions Application Argo CD
 

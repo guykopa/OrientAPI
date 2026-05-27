@@ -1,0 +1,68 @@
+#cloud-config
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - curl
+  - git
+  - jq
+  - docker.io
+
+runcmd:
+  # Enable Docker
+  - systemctl enable --now docker
+
+  # Install k3s — include public IP as TLS SAN so kubectl works remotely
+  - PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig-mode 644 --tls-san=$${PUBLIC_IP}" sh -
+
+  # Wait for the node to reach Ready state before proceeding
+  - until kubectl get nodes 2>/dev/null | grep -q " Ready"; do sleep 5; done
+
+  # Expose kubeconfig for the ubuntu user
+  - mkdir -p /home/ubuntu/.kube
+  - cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
+  - sed -i "s/127.0.0.1/$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/g" /home/ubuntu/.kube/config
+  - chown -R ubuntu:ubuntu /home/ubuntu/.kube
+
+  # Create project namespaces
+  - kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+  - kubectl create namespace orientapi --dry-run=client -o yaml | kubectl apply -f -
+
+  # Start PostgreSQL in Docker on the host — reachable from k3s pods via the node's private IP
+  - |
+    docker run -d --name postgres --restart unless-stopped \
+      -e POSTGRES_PASSWORD="${postgres_password}" \
+      -e POSTGRES_DB=orientapi \
+      -e POSTGRES_USER=orientapi \
+      -p 5432:5432 \
+      -v postgres_data:/var/lib/postgresql/data \
+      postgres:16
+
+  # Create the postgres-credentials secret before Argo CD deploys OrientAPI pods.
+  # The DATABASE_URL points to Postgres running in Docker on this host.
+  # PRIVATE_IP and the kubectl command share a single shell block so the variable is preserved.
+  - |
+    PRIVATE_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
+    kubectl create secret generic postgres-credentials \
+      --namespace=orientapi \
+      --from-literal=database_url="postgresql://orientapi:${postgres_password}@$${PRIVATE_IP}:5432/orientapi" \
+      --dry-run=client -o yaml | kubectl apply -f -
+
+  # Install Argo CD
+  - kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+  # Expose Argo CD server via NodePort on 30443 for demo access
+  - |
+    kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"port":443,"targetPort":8080,"nodePort":30443}]}}'
+
+  # Install Sealed Secrets controller
+  - kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml
+
+  # Start node-exporter so the monitoring node can scrape host metrics
+  - |
+    docker run -d --name node-exporter --restart unless-stopped \
+      --net=host --pid=host \
+      -v /:/host:ro,rslave \
+      prom/node-exporter:latest --path.rootfs=/host

@@ -1,4 +1,5 @@
-# Allow Prometheus (in observability namespace) to scrape OrientAPI metrics on port 8000.
+# Allow external Prometheus (monitoring node, via NodePort 30090) to scrape OrientAPI metrics.
+# Prometheus is no longer in-cluster — traffic arrives from the VPC subnet.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -14,9 +15,8 @@ spec:
     - Ingress
   ingress:
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: observability
+        - ipBlock:
+            cidr: 10.0.0.0/16
       ports:
         - port: 8000
           protocol: TCP

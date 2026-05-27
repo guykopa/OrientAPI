@@ -79,7 +79,7 @@ L'API est sans état applicatif (*stateless*) ; la persistance est assurée par 
 
 ## 4. Exigences de sécurité
 
-**EXI-SEC-01** — Les secrets applicatifs (identifiants PostgreSQL, clés API) doivent être gérés via **Bitnami Sealed Secrets**. Il est formellement interdit de stocker des secrets en clair dans le dépôt Git ou dans les images Docker.
+**EXI-SEC-01** — Les secrets applicatifs (identifiants PostgreSQL, clés API) ne doivent jamais être stockés en clair dans le dépôt Git ni dans les images Docker. Pour l'environnement de démonstration, l'injection par le mécanisme de provisionnement d'infrastructure (cloud-init, variables sensibles hors Git) est acceptée. En production, l'usage d'un gestionnaire de secrets dédié (Bitnami Sealed Secrets, HashiCorp Vault ou AWS Secrets Manager) est exigé.
 
 **EXI-SEC-02** — Des **Network Policies Kubernetes** doivent être définies selon le principe du moindre privilège : refus de tout trafic par défaut, autorisation explicite et documentée des flux nécessaires. Le CNI déployé doit appliquer ces politiques (Cilium recommandé).
 
@@ -95,7 +95,7 @@ L'API est sans état applicatif (*stateless*) ; la persistance est assurée par 
 
 ## 5. Exigences d'observabilité
 
-**EXI-OBS-01** — La stack de supervision doit comprendre : **Prometheus** (collecte des métriques), **Grafana** (visualisation), **Loki + Promtail** (agrégation des logs).
+**EXI-OBS-01** — La stack de supervision doit comprendre au minimum : **Prometheus** (collecte des métriques) et **Grafana** (visualisation, dashboards versionnés). Pour l'environnement de démonstration, l'observabilité est limitée aux métriques. L'agrégation des logs (**Loki + Promtail**) est exigée pour la mise en production et constitue un livrable de la phase V2.
 
 **EXI-OBS-02** — Au minimum deux dashboards Grafana doivent être livrés et versionnés dans le dépôt Git (format JSON Grafana) :
 - **Tableau de bord API** : taux de requêtes, latence P50/P95, taux d'erreurs 5xx, nombre de pods actifs.
@@ -134,7 +134,7 @@ L'API est sans état applicatif (*stateless*) ; la persistance est assurée par 
 | # | Livrable                                              | Format          | Délai |
 |---|-------------------------------------------------------|-----------------|-------|
 | L1 | Code Terraform (VPC, EC2, sécurité)                  | `.tf` dans Git  | J+2   |
-| L2 | Manifests Kubernetes (API, Postgres, observabilité)   | YAML dans Git   | J+3   |
+| L2 | Manifests Kubernetes (API, Network Policies) + Docker Compose (Postgres sur nœud app, Prometheus + Grafana sur nœud monitoring) | YAML/Compose dans Git | J+3 |
 | L3 | Pipeline CI/CD GitHub Actions                        | `.yml` dans Git | J+3   |
 | L4 | Dashboards Grafana                                   | JSON dans Git   | J+4   |
 | L5 | Rapport de test de charge k6                         | JSON + texte    | J+4   |
