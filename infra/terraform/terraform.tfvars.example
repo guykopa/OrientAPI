@@ -9,4 +9,6 @@ key_pair_name            = "orientops-key"
 public_key_path          = "~/.ssh/id_rsa.pub"
 app_volume_size_gb       = 20
 monitoring_volume_size_gb = 15
-postgres_password        = "changeme"     # replace with a strong password
+postgres_password        = "changeme"          # replace with a strong password
+grafana_admin_password   = "changeme"          # Grafana admin UI password
+argocd_admin_password    = "changeme"          # Argo CD admin UI password

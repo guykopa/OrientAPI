@@ -8,6 +8,7 @@ packages:
   - git
   - jq
   - docker.io
+  - python3-bcrypt
 
 runcmd:
   # Enable Docker
@@ -56,6 +57,14 @@ runcmd:
   # Expose Argo CD server via NodePort on 30443 for demo access
   - |
     kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"NodePort","ports":[{"port":443,"targetPort":8080,"nodePort":30443}]}}'
+
+  # Wait for Argo CD server to be ready, then set admin password via bcrypt patch
+  - kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+  - |
+    HASH=$(python3 -c "import bcrypt; print(bcrypt.hashpw(b'${argocd_admin_password}', bcrypt.gensalt(rounds=10)).decode())")
+    kubectl -n argocd patch secret argocd-secret \
+      --type merge \
+      -p "{\"stringData\":{\"admin.password\":\"$${HASH}\",\"admin.passwordMtime\":\"$$(date +%FT%T%Z)\"}}"
 
   # Install Sealed Secrets controller
   - kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/latest/download/controller.yaml

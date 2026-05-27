@@ -50,3 +50,15 @@ variable "postgres_password" {
   type        = string
   sensitive   = true
 }
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password — injected into cloud-init-monitoring as GF_SECURITY_ADMIN_PASSWORD"
+  type        = string
+  sensitive   = true
+}
+
+variable "argocd_admin_password" {
+  description = "Argo CD admin password — bcrypt-hashed at boot and patched into argocd-secret"
+  type        = string
+  sensitive   = true
+}
