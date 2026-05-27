@@ -2,6 +2,9 @@
 Architecture.md
 CLAUDE.md
 
+# Local scripts with credentials
+scripts/
+
 # Python
 __pycache__/
 *.py[cod]
