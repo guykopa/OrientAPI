@@ -47,6 +47,9 @@ override.tf.json
 
 # SSH keys
 *.pem
+
+# k6 results (generated at runtime)
+tests/k6/results/*.json
 *.key
 id_rsa
 id_ed25519
