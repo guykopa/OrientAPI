@@ -1,4 +1,9 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
+_here = Path(__file__).parent  # src/
+_env_file = _here.parent / ".env"  # app/.env
 
 
 class Settings(BaseSettings):
@@ -14,7 +19,7 @@ class Settings(BaseSettings):
     api_username: str = "demo"
     api_password: str = "orientops2026"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": str(_env_file), "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()
