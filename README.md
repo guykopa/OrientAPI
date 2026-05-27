@@ -15,7 +15,7 @@ Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'u
 | 3 | CI/CD | GitHub Actions : test → build → scan Trivy → push GHCR → bump tag |
 | 4 | GitOps | Argo CD synchronise le cluster depuis `main` à chaque commit |
 | 5 | Observabilité | Prometheus + Grafana sur nœud dédié — 2 dashboards provisionnés |
-| 6 | Sécurité | Network Policies, secrets injectés par cloud-init, scan image, non-root pods |
+| 6 | Sécurité | Network Policies, JWT auth (HS256), secrets injectés par cloud-init, scan image Trivy, non-root pods |
 | 7 | Tests de charge | k6 — simulation pic Parcoursup 1 000 req/s |
 | 8 | Cahier des charges | Spec technique DSI → prestataire, 9 exigences, critères de recette |
 | 9 | Post-mortem | Incident saturation DB, diagnostiqué en < 2 min, causes documentées |
@@ -59,9 +59,14 @@ docker compose up
 Appeler l'API :
 
 ```bash
-# Recommandations pour un élève en informatique, 14/20, vise un BAC+3
+# 1. Obtenir un token
+TOKEN=$(curl -s -X POST http://localhost:8000/token \
+  -d "username=demo&password=orientops2026" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+# 2. Appeler l'API
 curl -s -X POST http://localhost:8000/recommend \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"filiere_souhaitee": "informatique", "moyenne": 14.0, "niveau_vise": "BAC+3"}' \
   | python3 -m json.tool
 ```
@@ -69,8 +74,9 @@ curl -s -X POST http://localhost:8000/recommend \
 Santé et métriques :
 
 ```bash
-curl http://localhost:8000/health
-curl http://localhost:8000/metrics
+curl http://localhost:8000/health        # public
+curl http://localhost:8000/metrics       # public (Prometheus)
+# Endpoints protégés : /recommend, /formations, /filieres → Bearer token requis
 ```
 
 ---
@@ -81,7 +87,7 @@ curl http://localhost:8000/metrics
 cd app
 source ../.venv/bin/activate
 pytest -v
-# → 6/6 passed
+# → 12/12 passed
 ```
 
 ---
@@ -89,6 +95,9 @@ pytest -v
 ## Déployer l'infrastructure
 
 ```bash
+cp app/.env.example app/.env
+# Renseigner les mots de passe dans app/.env
+
 cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars
 # Renseigner : operator_ip, public_key_path, postgres_password
@@ -124,6 +133,9 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 ```bash
 kubectl apply -f infra/kubernetes/argo-apps/
 # Argo CD synchronise automatiquement OrientAPI
+
+# Appliquer le Secret JWT (credentials API)
+kubectl apply -f infra/kubernetes/base/orientapi/secret-jwt.yaml
 ```
 
 ### Accéder à Grafana
@@ -181,11 +193,20 @@ Ces limites sont documentées et font l'objet d'un plan d'évolution.
 ## Structure du dépôt
 
 ```
-app/                         Application OrientAPI (FastAPI + PostgreSQL)
-├── src/                     Code source (routes → services → modèles)
-├── tests/                   Tests unitaires SQLite in-memory
+app/
+├── src/
+│   ├── auth.py              Authentification JWT (HS256)
+│   ├── config.py            Settings Pydantic (lecture .env)
+│   ├── main.py              Routes FastAPI
+│   ├── services.py          Logique métier
+│   └── models.py            Modèles SQLAlchemy
+├── tests/                   12 tests unitaires (services + auth)
+├── .env.example             Template de credentials (commité)
 ├── Dockerfile               Multi-stage, non-root uid 1001
-└── docker-compose.yml       Dev local
+└── docker-compose.yml       Dev local (env_file: .env)
+
+scripts/                     Scripts d'exploitation locaux (gitignorés)
+└── orientops.sh             Start/stop instances + affiche URLs et commandes
 
 infra/terraform/             Infrastructure AWS (VPC, 2 EC2, security groups, cloud-init)
 infra/postgres/              Docker Compose de référence — PostgreSQL sur nœud app
