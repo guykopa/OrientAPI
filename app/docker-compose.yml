@@ -1,10 +1,7 @@
 services:
   db:
     image: postgres:16
-    environment:
-      POSTGRES_USER: orientapi
-      POSTGRES_PASSWORD: orientapi
-      POSTGRES_DB: orientapi
+    env_file: .env
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -17,8 +14,7 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql://orientapi:orientapi@db:5432/orientapi
+    env_file: .env
     depends_on:
       db:
         condition: service_healthy
