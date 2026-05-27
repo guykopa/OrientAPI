@@ -1,5 +1,7 @@
 # Allow OrientAPI pods to reach PostgreSQL running in Docker on the app node host (port 5432).
-# PostgreSQL is no longer a k8s pod — it runs in Docker on the host, reachable via the VPC subnet.
+# PostgreSQL runs in Docker with -p 5432:5432. Docker DNAT rewrites the destination to the
+# container's bridge IP (172.17.0.x) before kube-router sees the FORWARD chain, so we must
+# allow both the VPC subnet (10.0.0.0/16) and the Docker bridge subnet (172.17.0.0/16).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -17,6 +19,8 @@ spec:
     - to:
         - ipBlock:
             cidr: 10.0.0.0/16
+        - ipBlock:
+            cidr: 172.17.0.0/16
       ports:
         - port: 5432
           protocol: TCP
