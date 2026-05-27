@@ -40,3 +40,13 @@ class RecommendationService:
             formations=[FormationOut.model_validate(f) for f in formations],
             total=len(formations),
         )
+
+    def list_formations(self) -> list[Formation]:
+        return list(self.db.scalars(select(Formation).order_by(Formation.filiere, Formation.nom)))
+
+    def get_formation(self, formation_id: int) -> Formation | None:
+        return self.db.get(Formation, formation_id)
+
+    def list_filieres(self) -> list[str]:
+        rows = self.db.execute(select(Formation.filiere).distinct().order_by(Formation.filiere))
+        return [r[0] for r in rows]

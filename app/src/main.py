@@ -2,14 +2,14 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import structlog
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy.orm import Session
 
 from src.config import settings
 from src.database import Base, engine, get_db
 from src.models import Formation  # noqa: F401 — ensures model is registered before create_all
-from src.schemas import ProfilEleve, RecommandationResponse
+from src.schemas import FormationOut, ProfilEleve, RecommandationResponse
 from src.seed import seed
 from src.services import RecommendationService
 
@@ -47,6 +47,24 @@ Instrumentator().instrument(app).expose(app)
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/formations", response_model=list[FormationOut])
+def list_formations(db: Session = Depends(get_db)) -> list[FormationOut]:
+    return RecommendationService(db).list_formations()
+
+
+@app.get("/formations/{formation_id}", response_model=FormationOut)
+def get_formation(formation_id: int, db: Session = Depends(get_db)) -> FormationOut:
+    formation = RecommendationService(db).get_formation(formation_id)
+    if not formation:
+        raise HTTPException(status_code=404, detail="Formation non trouvée")
+    return formation
+
+
+@app.get("/filieres", response_model=list[str])
+def list_filieres(db: Session = Depends(get_db)) -> list[str]:
+    return RecommendationService(db).list_filieres()
 
 
 @app.post("/recommend", response_model=RecommandationResponse)
