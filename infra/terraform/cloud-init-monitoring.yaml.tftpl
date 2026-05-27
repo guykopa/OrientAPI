@@ -39,8 +39,7 @@ runcmd:
       -v grafana_data:/var/lib/grafana \
       -v /opt/monitoring/provisioning:/etc/grafana/provisioning:ro \
       -v /opt/monitoring/dashboards:/var/lib/grafana/dashboards:ro \
-      -e GF_AUTH_ANONYMOUS_ENABLED=true \
-      -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin \
+      -e GF_AUTH_ANONYMOUS_ENABLED=false \
       -e GF_SECURITY_ADMIN_PASSWORD=${grafana_admin_password} \
       -e GF_USERS_ALLOW_SIGN_UP=false \
       -p 3000:3000 \
