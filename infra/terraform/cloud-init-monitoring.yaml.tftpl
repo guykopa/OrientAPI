@@ -7,7 +7,6 @@ packages:
   - curl
   - git
   - docker.io
-  - docker-compose-plugin
 
 runcmd:
   # Enable Docker
@@ -22,5 +21,27 @@ runcmd:
   # Inject the app node private IP into Prometheus scrape targets
   - sed -i 's/APP_PRIVATE_IP/${app_private_ip}/g' /opt/monitoring/prometheus.yml
 
-  # Start Prometheus + Grafana
-  - cd /opt/monitoring && docker compose up -d
+  # Start Prometheus
+  - |
+    docker run -d --name prometheus --restart unless-stopped \
+      -v /opt/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+      -v prometheus_data:/prometheus \
+      -p 9090:9090 \
+      prom/prometheus:latest \
+      --config.file=/etc/prometheus/prometheus.yml \
+      --storage.tsdb.path=/prometheus \
+      --storage.tsdb.retention.time=15d
+
+  # Start Grafana with provisioning and dashboards from the cloned repo
+  - |
+    docker run -d --name grafana --restart unless-stopped \
+      --link prometheus:prometheus \
+      -v grafana_data:/var/lib/grafana \
+      -v /opt/monitoring/provisioning:/etc/grafana/provisioning:ro \
+      -v /opt/monitoring/dashboards:/var/lib/grafana/dashboards:ro \
+      -e GF_AUTH_ANONYMOUS_ENABLED=true \
+      -e GF_AUTH_ANONYMOUS_ORG_ROLE=Admin \
+      -e GF_SECURITY_ADMIN_PASSWORD=orientops \
+      -e GF_USERS_ALLOW_SIGN_UP=false \
+      -p 3000:3000 \
+      grafana/grafana:latest
