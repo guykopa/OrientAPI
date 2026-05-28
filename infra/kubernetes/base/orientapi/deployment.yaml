@@ -22,7 +22,7 @@ spec:
         runAsUser: 1001
       containers:
         - name: orientapi
-          image: ghcr.io/guykopa/orientapi:sha-dc3e51c
+          image: ghcr.io/guykopa/orientapi:sha-898b9cf
           ports:
             - containerPort: 8000
           envFrom:
