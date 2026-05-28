@@ -6,9 +6,9 @@ nav_order: 4
 
 # Revue d'architecture — Livraison CloudOps Services SAS
 
-**Référence :** OrientSup-REV-2024-001  
+**Référence :** OrientSup-REV-2026-001  
 **Version :** 1.0  
-**Date :** 2024-11-22  
+**Date :** 2026-03-20  
 **Réviseur :** Guy Florian KOPA, Ingénieur DevOps — OrientSup  
 **Prestataire évalué :** CloudOps Services SAS  
 **Périmètre :** Infrastructure OrientAPI — environnement de démonstration
@@ -17,7 +17,7 @@ nav_order: 4
 
 ## 1. Contexte et objectif de la revue
 
-La présente revue fait suite à la livraison par CloudOps Services SAS de l'infrastructure OrientAPI, telle que spécifiée dans le cahier des charges OrientSup-CDC-2024-001. Elle vise à évaluer la conformité de la livraison aux exigences contractuelles, à identifier les écarts et risques résiduels, et à formuler les recommandations pour la mise en production.
+La présente revue fait suite à la livraison par CloudOps Services SAS de l'infrastructure OrientAPI, telle que spécifiée dans le cahier des charges OrientSup-CDC-2026-001. Elle vise à évaluer la conformité de la livraison aux exigences contractuelles, à identifier les écarts et risques résiduels, et à formuler les recommandations pour la mise en production.
 
 La revue a été conduite à partir du dépôt Git livré, de la documentation d'architecture fournie, et des rapports de test de charge k6.
 

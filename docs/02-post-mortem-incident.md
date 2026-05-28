@@ -6,8 +6,8 @@ nav_order: 3
 
 # Post-mortem — Saturation du pool de connexions PostgreSQL
 
-**Référence :** OrientSup-INC-2024-001  
-**Date de l'incident :** 2024-11-20  
+**Référence :** OrientSup-INC-2026-001  
+**Date de l'incident :** 2026-03-18  
 **Rédigé par :** Guy Florian KOPA, Ingénieur DevOps — OrientSup  
 **Statut :** Clôturé — actions préventives en cours  
 **Sévérité :** P2 — Dégradation majeure de service (non-production)
@@ -16,7 +16,7 @@ nav_order: 3
 
 ## 1. Résumé exécutif
 
-Le 20 novembre 2024, lors d'un test de charge simulant un pic de trafic Parcoursup sur l'environnement de démonstration OrientAPI, une saturation du pool de connexions PostgreSQL a provoqué une indisponibilité partielle de l'API pendant **8 minutes**. Le taux d'erreur 5xx a atteint **47 %** au pic. L'incident a été détecté par les alertes Grafana, diagnostiqué via les métriques Prometheus et les logs applicatifs OrientAPI, et résolu par un ajustement de la configuration PostgreSQL sans interruption complète du service.
+Le 18 mars 2026, lors d'un test de charge simulant un pic de trafic Parcoursup sur l'environnement de démonstration OrientAPI, une saturation du pool de connexions PostgreSQL a provoqué une indisponibilité partielle de l'API pendant **8 minutes**. Le taux d'erreur 5xx a atteint **47 %** au pic. L'incident a été détecté par les alertes Grafana, diagnostiqué via les métriques Prometheus et les logs applicatifs OrientAPI, et résolu par un ajustement de la configuration PostgreSQL sans interruption complète du service.
 
 Aucune donnée n'a été perdue. L'incident s'est produit en environnement de démonstration, hors production réelle.
 

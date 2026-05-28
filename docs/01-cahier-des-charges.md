@@ -6,9 +6,9 @@ nav_order: 2
 
 # Cahier des charges technique — Infrastructure OrientAPI
 
-**Référence :** OrientSup-CDC-2024-001  
+**Référence :** OrientSup-CDC-2026-001  
 **Version :** 1.0  
-**Date :** 2024-11-15  
+**Date :** 2026-03-10  
 **Émetteur :** OrientSup — Équipe Infrastructure  
 **Destinataire :** Prestataire technique retenu  
 **Statut :** Applicable
@@ -21,7 +21,7 @@ nav_order: 2
 
 OrientSup est une organisation spécialisée dans l'orientation scolaire et professionnelle. L'équipe infrastructure pilote l'ensemble des systèmes d'information, dont certains sont développés en collaboration avec des prestataires externes.
 
-Dans le cadre de sa stratégie de modernisation 2024-2026, OrientSup souhaite déployer **OrientAPI**, une API REST de recommandation de formations post-bac à destination des équipes internes et des intégrateurs partenaires. Ce service traite des données personnelles de profils élèves et est classifié **sensible** au sens de la politique de sécurité des systèmes d'information de l'organisation.
+Dans le cadre de sa stratégie de modernisation 2026-2028, OrientSup souhaite déployer **OrientAPI**, une API REST de recommandation de formations post-bac à destination des équipes internes et des intégrateurs partenaires. Ce service traite des données personnelles de profils élèves et est classifié **sensible** au sens de la politique de sécurité des systèmes d'information de l'organisation.
 
 ### 1.2 Objet du présent document
 
