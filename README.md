@@ -1,8 +1,9 @@
 # OrientOps
 
 [![CI](https://github.com/guykopa/OrientAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/guykopa/OrientAPI/actions/workflows/ci.yml)
+[![Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://guykopa.github.io/OrientAPI/)
 
-Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'une API de recommandation, incluant les livrables de gouvernance produits par un ingénieur DevOps en contexte DSI public.
+Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'une API de recommandation. Inclut la documentation opérationnelle complète : spécification technique, post-mortem d'incident et revue d'architecture.
 
 ---
 
@@ -17,9 +18,9 @@ Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'u
 | 5 | Observabilité | Prometheus + Grafana sur nœud dédié — 2 dashboards provisionnés |
 | 6 | Sécurité | Network Policies, JWT auth (HS256), secrets injectés par cloud-init, scan image Trivy, non-root pods |
 | 7 | Tests de charge | k6 — simulation pic Parcoursup 1 000 req/s |
-| 8 | Cahier des charges | Spec technique DSI → prestataire, 9 exigences, critères de recette |
+| 8 | Cahier des charges | Spécification technique d'infrastructure : 9 exigences, critères de recette |
 | 9 | Post-mortem | Incident saturation DB, diagnostiqué en < 2 min, causes documentées |
-| 10 | Revue prestataire | 6 écarts identifiés, tableau de risques, décision motivée |
+| 10 | Revue d'architecture | 6 écarts identifiés, tableau de risques, décision motivée |
 
 ---
 
@@ -45,7 +46,7 @@ GitHub Actions ──► Trivy scan ──► GHCR (image)
                                                 Grafana    → dashboards
 ```
 
-**Choix structurants documentés :** k3s plutôt qu'EKS (−70 €/mois), observabilité sur nœud dédié plutôt qu'in-cluster (RAM limitée à 2 GiB), PostgreSQL en Docker sur l'hôte plutôt que RDS (hors budget), limites documentées comme différenciateur.
+**Choix structurants documentés :** k3s plutôt qu'EKS (−70 €/mois), observabilité sur nœud dédié plutôt qu'in-cluster (RAM limitée à 2 GiB), PostgreSQL en Docker sur l'hôte plutôt que RDS (hors budget). Limites assumées explicitement documentées.
 
 ---
 
@@ -166,13 +167,13 @@ Lors du test de charge, un `max_connections` sous-dimensionné a saturé Postgre
 
 ---
 
-## Livrables de gouvernance
+## Documentation
 
 | Document | Description |
 |---|---|
-| [`docs/01-cahier-des-charges.md`](docs/01-cahier-des-charges.md) | Spécification formelle DSI → prestataire : 9 exigences (infra, sécurité, performance, RGPD), critères de recette |
+| [`docs/01-cahier-des-charges.md`](docs/01-cahier-des-charges.md) | Spécification technique d'infrastructure : 9 exigences (infra, sécurité, performance, RGPD), critères de recette |
 | [`docs/02-post-mortem-incident.md`](docs/02-post-mortem-incident.md) | Analyse de l'incident de saturation PostgreSQL : chronologie, cause racine, impact, 6 actions préventives |
-| [`docs/03-revue-architecture-presta.md`](docs/03-revue-architecture-presta.md) | Revue critique de la livraison : 4 points conformes, 6 écarts identifiés, tableau de risques, décision motivée |
+| [`docs/03-revue-architecture-presta.md`](docs/03-revue-architecture-presta.md) | Revue critique de l'architecture livrée : 4 points conformes, 6 écarts identifiés, tableau de risques, décision motivée |
 
 ---
 
@@ -223,7 +224,7 @@ infra/kubernetes/
 
 .github/workflows/ci.yml     Pipeline CI/CD
 tests/k6/                    Script de charge Parcoursup
-docs/                        Livrables de gouvernance + screenshots
+docs/                        Documentation opérationnelle + screenshots
 ```
 
 ---

@@ -1,10 +1,16 @@
+---
+layout: default
+title: Cahier des charges
+nav_order: 2
+---
+
 # Cahier des charges technique — Infrastructure OrientAPI
 
-**Référence :** OrientSup-DSI-CDC-2024-001  
+**Référence :** OrientSup-CDC-2024-001  
 **Version :** 1.0  
 **Date :** 2024-11-15  
-**Émetteur :** Direction des Systèmes d'Information — OrientSup  
-**Destinataire :** Prestataire d'infogérance retenu  
+**Émetteur :** OrientSup — Équipe Infrastructure  
+**Destinataire :** Prestataire technique retenu  
 **Statut :** Applicable
 
 ---
@@ -13,9 +19,9 @@
 
 ### 1.1 Contexte organisationnel
 
-OrientSup est un groupement d'intérêt public (GIP) sous tutelle du ministère de l'Éducation nationale, chargé de l'orientation scolaire et professionnelle. La DSI d'OrientSup pilote l'ensemble des systèmes d'information de l'établissement, dont certains font l'objet de délégations à des prestataires d'infogérance.
+OrientSup est une organisation spécialisée dans l'orientation scolaire et professionnelle. L'équipe infrastructure pilote l'ensemble des systèmes d'information, dont certains sont développés en collaboration avec des prestataires externes.
 
-Dans le cadre de sa stratégie de modernisation 2024-2026, la DSI souhaite déployer **OrientAPI**, une API REST de recommandation de formations post-bac à destination des équipes internes et des intégrateurs partenaires. Ce service traite des données personnelles de profils élèves et est classifié **sensible** au sens de la politique de sécurité des systèmes d'information (PSSI) de l'établissement.
+Dans le cadre de sa stratégie de modernisation 2024-2026, OrientSup souhaite déployer **OrientAPI**, une API REST de recommandation de formations post-bac à destination des équipes internes et des intégrateurs partenaires. Ce service traite des données personnelles de profils élèves et est classifié **sensible** au sens de la politique de sécurité des systèmes d'information de l'organisation.
 
 ### 1.2 Objet du présent document
 
@@ -69,7 +75,7 @@ L'API est sans état applicatif (*stateless*) ; la persistance est assurée par 
 
 ### 3.3 GitOps et CI/CD
 
-**EXI-INFRA-06** — Le déploiement des applications sur le cluster doit être piloté par **Argo CD** en mode synchronisation automatique. L'état désiré est versionné dans le dépôt Git fourni par la DSI.
+**EXI-INFRA-06** — Le déploiement des applications sur le cluster doit être piloté par **Argo CD** en mode synchronisation automatique. L'état désiré est versionné dans le dépôt Git du projet.
 
 **EXI-INFRA-07** — Un pipeline de CI/CD (GitHub Actions) doit être livré, couvrant : exécution des tests unitaires, construction de l'image Docker, analyse de vulnérabilités (Trivy), publication sur le registre d'images (GHCR) et mise à jour automatique du tag d'image dans les manifests Kubernetes.
 
@@ -158,4 +164,4 @@ La recette sera prononcée favorable si l'ensemble des conditions suivantes sont
 
 ---
 
-*Document rédigé par la DSI OrientSup — toute modification doit faire l'objet d'un avenant signé par les deux parties.*
+*Document rédigé par OrientSup.*

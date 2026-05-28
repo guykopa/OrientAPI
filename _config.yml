@@ -1,0 +1,42 @@
+remote_theme: just-the-docs/just-the-docs
+
+plugins:
+  - jekyll-remote-theme
+
+title: OrientOps
+description: Infrastructure GitOps complète sur AWS — API de recommandation avec documentation opérationnelle
+
+url: https://guykopa.github.io
+baseurl: /OrientAPI
+
+aux_links:
+  "GitHub ↗":
+    - "//github.com/guykopa/OrientAPI"
+
+aux_links_new_tab: true
+
+color_scheme: light
+
+search_enabled: true
+
+footer_content: "Guy Florian KOPA &nbsp;·&nbsp; <a href='https://github.com/guykopa'>GitHub</a> &nbsp;·&nbsp; <a href='https://linkedin.com/in/kopaguy'>LinkedIn</a>"
+
+back_to_top: true
+back_to_top_text: "↑ Haut de page"
+
+callouts_level: quiet
+callouts:
+  highlight:
+    color: yellow
+  important:
+    title: Important
+    color: blue
+  new:
+    title: Nouveau
+    color: green
+  note:
+    title: Note
+    color: purple
+  warning:
+    title: Attention
+    color: red
