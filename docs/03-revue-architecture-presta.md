@@ -1,9 +1,15 @@
+---
+layout: default
+title: Revue d'architecture
+nav_order: 4
+---
+
 # Revue d'architecture — Livraison CloudOps Services SAS
 
-**Référence :** OrientSup-DSI-REV-2024-001  
+**Référence :** OrientSup-REV-2024-001  
 **Version :** 1.0  
 **Date :** 2024-11-22  
-**Réviseur :** Guy Florian KOPA, Ingénieur DevOps DSI OrientSup  
+**Réviseur :** Guy Florian KOPA, Ingénieur DevOps — OrientSup  
 **Prestataire évalué :** CloudOps Services SAS  
 **Périmètre :** Infrastructure OrientAPI — environnement de démonstration
 
@@ -11,7 +17,7 @@
 
 ## 1. Contexte et objectif de la revue
 
-La présente revue fait suite à la livraison par CloudOps Services SAS de l'infrastructure OrientAPI, telle que spécifiée dans le cahier des charges OrientSup-DSI-CDC-2024-001. Elle vise à évaluer la conformité de la livraison aux exigences contractuelles, à identifier les écarts et risques résiduels, et à formuler les recommandations pour la mise en production.
+La présente revue fait suite à la livraison par CloudOps Services SAS de l'infrastructure OrientAPI, telle que spécifiée dans le cahier des charges OrientSup-CDC-2024-001. Elle vise à évaluer la conformité de la livraison aux exigences contractuelles, à identifier les écarts et risques résiduels, et à formuler les recommandations pour la mise en production.
 
 La revue a été conduite à partir du dépôt Git livré, de la documentation d'architecture fournie, et des rapports de test de charge k6.
 
@@ -127,8 +133,8 @@ Le découpage en couches (routes → services → modèles) est respecté. Les r
 - ⚠️ **Avec réserves levables avant production** : DPIA (bloquant), Cilium pour Network Policies, clé KMS dédiée, issuer TLS production.
 - 🚫 **Non-conforme pour mise en production** : absence de HA et absence de sauvegarde managée. Ces points doivent faire l'objet d'un avenant contractuel et d'un nouveau cahier des charges pour la phase de production.
 
-La DSI OrientSup reconnaît que ces limites ont été **explicitement documentées par le prestataire** dans le document d'architecture, ce qui témoigne d'une posture de transparence appréciable. La mise en production nécessitera un dimensionnement et un cahier des charges distincts.
+OrientSup reconnaît que ces limites ont été **explicitement documentées par le prestataire** dans le document d'architecture, ce qui témoigne d'une posture de transparence appréciable. La mise en production nécessitera un dimensionnement et un cahier des charges distincts.
 
 ---
 
-*Revue réalisée par la DSI OrientSup dans le cadre du processus de gouvernance des livraisons prestataires. Ce document est communicable à l'équipe projet et au DPO (pour la partie RGPD).*
+*Revue réalisée par OrientSup. Ce document est communicable à l'équipe projet et au DPO (pour la partie RGPD).*

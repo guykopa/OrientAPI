@@ -1,8 +1,14 @@
+---
+layout: default
+title: Post-mortem
+nav_order: 3
+---
+
 # Post-mortem — Saturation du pool de connexions PostgreSQL
 
-**Référence :** OrientSup-DSI-INC-2024-001  
+**Référence :** OrientSup-INC-2024-001  
 **Date de l'incident :** 2024-11-20  
-**Rédigé par :** Guy Florian KOPA, Ingénieur DevOps DSI OrientSup  
+**Rédigé par :** Guy Florian KOPA, Ingénieur DevOps — OrientSup  
 **Statut :** Clôturé — actions préventives en cours  
 **Sévérité :** P2 — Dégradation majeure de service (non-production)
 
@@ -108,12 +114,12 @@ Redémarrage contrôlé du conteneur Docker PostgreSQL via `docker restart postg
 
 | # | Action | Responsable | Délai | Statut |
 |---|--------|-------------|-------|--------|
-| A1 | Définir `max_connections` selon la formule documentée ci-dessus | DSI | J+1 | ✅ Fait |
-| A2 | Ajouter alerte Prometheus sur saturation connexions DB | DSI | J+2 | ✅ Fait |
-| A3 | Documenter la formule de dimensionnement dans le runbook d'exploitation | DSI | J+2 | ✅ Fait |
-| A4 | Évaluer PgBouncer pour v2 du projet | DSI | V2 | 📋 Backlog |
-| A5 | Ajouter un test de charge systématique dans la pipeline CI (seuil d'erreur < 1 %) | DSI | J+5 | 📋 Backlog |
-| A6 | Configurer `HorizontalPodAutoscaler` sur OrientAPI pour absorber les pics | DSI | V2 | 📋 Backlog |
+| A1 | Définir `max_connections` selon la formule documentée ci-dessus | G. KOPA | J+1 | ✅ Fait |
+| A2 | Ajouter alerte Prometheus sur saturation connexions DB | G. KOPA | J+2 | ✅ Fait |
+| A3 | Documenter la formule de dimensionnement dans le runbook d'exploitation | G. KOPA | J+2 | ✅ Fait |
+| A4 | Évaluer PgBouncer pour v2 du projet | G. KOPA | V2 | 📋 Backlog |
+| A5 | Ajouter un test de charge systématique dans la pipeline CI (seuil d'erreur < 1 %) | G. KOPA | J+5 | 📋 Backlog |
+| A6 | Configurer `HorizontalPodAutoscaler` sur OrientAPI pour absorber les pics | G. KOPA | V2 | 📋 Backlog |
 
 ---
 
