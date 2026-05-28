@@ -3,6 +3,8 @@
 [![CI](https://github.com/guykopa/OrientAPI/actions/workflows/ci.yml/badge.svg)](https://github.com/guykopa/OrientAPI/actions/workflows/ci.yml)
 [![Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://guykopa.github.io/OrientAPI/)
 
+**Documentation et présentation du projet : [guykopa.github.io/OrientAPI](https://guykopa.github.io/OrientAPI/)**
+
 Infrastructure GitOps complète sur AWS pour le déploiement et l'opération d'une API de recommandation. Inclut la documentation opérationnelle complète : spécification technique, post-mortem d'incident et revue d'architecture.
 
 ---
