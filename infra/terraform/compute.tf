@@ -37,6 +37,9 @@ resource "aws_instance" "app" {
   user_data = templatefile("${path.module}/cloud-init-app.yaml.tftpl", {
     postgres_password     = var.postgres_password
     argocd_admin_password = var.argocd_admin_password
+    jwt_secret            = var.jwt_secret
+    api_username          = var.api_username
+    api_password          = var.api_password
   })
 
   user_data_replace_on_change = true

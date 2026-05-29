@@ -51,6 +51,15 @@ runcmd:
       --from-literal=database_url="postgresql://orientapi:${postgres_password}@$${PRIVATE_IP}:5432/orientapi" \
       --dry-run=client -o yaml | kubectl apply -f -
 
+  # Create the orientapi-jwt secret — credentials injected via Terraform, never committed to Git
+  - |
+    kubectl create secret generic orientapi-jwt \
+      --namespace=orientapi \
+      --from-literal=jwt_secret="${jwt_secret}" \
+      --from-literal=api_username="${api_username}" \
+      --from-literal=api_password="${api_password}" \
+      --dry-run=client -o yaml | kubectl apply -f -
+
   # Install Argo CD
   - kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 

@@ -62,3 +62,21 @@ variable "argocd_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "jwt_secret" {
+  description = "JWT signing secret for OrientAPI — injected into cloud-init, never committed"
+  type        = string
+  sensitive   = true
+}
+
+variable "api_username" {
+  description = "OrientAPI basic auth username — injected into cloud-init, never committed"
+  type        = string
+  sensitive   = true
+}
+
+variable "api_password" {
+  description = "OrientAPI basic auth password — injected into cloud-init, never committed"
+  type        = string
+  sensitive   = true
+}

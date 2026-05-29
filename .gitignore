@@ -47,6 +47,8 @@ override.tf.json
 # Kubernetes secrets (plaintext — use Sealed Secrets instead)
 *-secret.yaml
 *-secret.yml
+secret-*.yaml
+secret-*.yml
 
 # SSH keys
 *.pem
